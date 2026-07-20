@@ -11,7 +11,9 @@ export function Logo({
   height = 84,
   className = "",
 }: LogoProps) {
-  const logoPath = `/assets/logo/vyral-logo-${variant}-${tone}.svg`;
+  const logoPath = variant === "wordmark" 
+    ? `/assets/logo/vyral-wordmark-${tone}.svg`
+    : `/assets/logo/vyral-logo-lockup-${tone}.svg`;
 
   return (
     <img
