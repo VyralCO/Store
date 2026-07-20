@@ -1,24 +1,38 @@
+import { Button } from "@/components/ui/button";
+
 export default function Home() {
   return (
-    <div className="flex flex-1 items-center justify-center">
-      <h1 className="font-display text-9xl font-black italic text-white">
-        VYRAL
+    <div className="container py-20">
+      <h1 className="font-display text-5xl font-black italic mb-8">
+        Em Construção
       </h1>
-    </div>
-  );
-}
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      <p className="text-muted mb-12 max-w-2xl">
+        O site VYRAL está sendo preparado. Abaixo você vê os 3 estilos de botão
+        para validação visual.
+      </p>
+
+      {/* Button variants showcase */}
+      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+        <Button variant="primary">Comprar Agora</Button>
+        <Button variant="ghost">Saiba Mais</Button>
+        <Button variant="cyan">Conferir</Button>
+      </div>
+
+      {/* Disabled states */}
+      <div className="mt-8">
+        <p className="text-muted text-sm mb-3">Estados desativados:</p>
+        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+          <Button variant="primary" disabled>
+            Comprar Agora
+          </Button>
+          <Button variant="ghost" disabled>
+            Saiba Mais
+          </Button>
+          <Button variant="cyan" disabled>
+            Conferir
+          </Button>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

@@ -21,6 +21,14 @@ const config: Config = {
         magenta: "var(--magenta)",
         cyan: "var(--cyan)",
       },
+      spacing: {
+        "2.25": "0.5625rem", // 9px
+        "3.5": "0.875rem", // 14px
+        "3.75": "0.9375rem", // 15px
+        "5.5": "1.375rem", // 22px
+        "6.5": "1.625rem", // 26px
+        "9": "2.25rem", // 36px
+      },
       borderRadius: {
         DEFAULT: "2px",
       },

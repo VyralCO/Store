@@ -3,6 +3,8 @@ import {
   Saira as SairaFont,
   Space_Mono as SpaceMonoFont,
 } from "next/font/google";
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
 import "./globals.css";
 
 const saira = SairaFont({
@@ -36,8 +38,10 @@ export default function RootLayout({
       lang="pt-BR"
       className={`${saira.variable} ${spaceMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-void text-white">
-        {children}
+      <body className="min-h-full flex flex-col bg-void text-white relative">
+        <SiteHeader />
+        <main className="flex-1 relative z-1">{children}</main>
+        <SiteFooter />
       </body>
     </html>
   );
