@@ -1,38 +1,87 @@
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Eyebrow } from "@/components/eyebrow";
+import { HeroLogo } from "@/components/hero-logo";
+import { Ticker } from "@/components/ticker";
+import { ProductCard } from "@/components/product-card";
+import { getProducts } from "@/lib/products";
 
-export default function Home() {
+export default async function Home() {
+  const products = await getProducts();
+  const featured = products.slice(0, 3);
+
   return (
-    <div className="container py-20">
-      <h1 className="font-display text-5xl font-black italic mb-8">
-        Em Construção
-      </h1>
-      <p className="text-muted mb-12 max-w-2xl">
-        O site VYRAL está sendo preparado. Abaixo você vê os 3 estilos de botão
-        para validação visual.
-      </p>
+    <>
+      {/* HERO */}
+      <header className="hero">
+        <div className="hero-glow" />
+        <div className="hero-glow c" />
 
-      {/* Button variants showcase */}
-      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
-        <Button variant="primary">Comprar Agora</Button>
-        <Button variant="ghost">Saiba Mais</Button>
-        <Button variant="cyan">Conferir</Button>
-      </div>
+        <Eyebrow tone="live">Sinal ao vivo — nova coleção no ar</Eyebrow>
 
-      {/* Disabled states */}
-      <div className="mt-8">
-        <p className="text-muted text-sm mb-3">Estados desativados:</p>
-        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
-          <Button variant="primary" disabled>
-            Comprar Agora
-          </Button>
-          <Button variant="ghost" disabled>
-            Saiba Mais
-          </Button>
-          <Button variant="cyan" disabled>
-            Conferir
-          </Button>
+        <HeroLogo />
+
+        <p className="hero-sub">O HYPE VIRA ROUPA</p>
+
+        <div className="hero-actions">
+          <Link href="/loja">
+            <Button variant="primary">
+              Entrar na loja <span className="arw">→</span>
+            </Button>
+          </Link>
+          <Link href="/personalizar">
+            <Button variant="ghost">Monte a sua camiseta</Button>
+          </Link>
         </div>
-      </div>
-    </div>
+
+        <div className="hero-meta">
+          <div>
+            <b>79K</b>
+            <span>na tribo</span>
+          </div>
+          <div>
+            <b>240g</b>
+            <span>tecido premium</span>
+          </div>
+          <div>
+            <b>48H</b>
+            <span>meme→roupa</span>
+          </div>
+        </div>
+      </header>
+
+      {/* TICKER */}
+      <Ticker />
+
+      {/* EM DESTAQUE */}
+      <section className="section">
+        <div className="container">
+          <div className="sec-head">
+            <div>
+              <Eyebrow>Em destaque</Eyebrow>
+              <h2 style={{ marginTop: "12px" }}>O que tá bombando</h2>
+            </div>
+            <p>
+              Estampa costas full, tecido pesado, caimento largo. O print que
+              quebrou a timeline, agora vestível.
+            </p>
+          </div>
+
+          <div className="grid">
+            {featured.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+
+          <div style={{ textAlign: "center", marginTop: "34px" }}>
+            <Link href="/loja">
+              <Button variant="ghost">
+                Ver coleção completa <span className="arw">→</span>
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+    </>
   );
 }
