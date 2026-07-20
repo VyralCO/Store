@@ -1,0 +1,173 @@
+@import "tailwindcss";
+
+/* ========== DESIGN TOKENS ========== */
+:root {
+  /* Colors */
+  --void: #08080a;
+  --panel: #0e0e12;
+  --panel-2: #15151c;
+  --line: #26262f;
+  --line-2: #3a3a46;
+
+  --white: #f4f4f2;
+  --muted: #8a8a93;
+  --muted-2: #5c5c66;
+  --magenta: #ff1e56;
+  --cyan: #22e0ff;
+
+  --glow-m: rgba(255, 30, 86, 0.55);
+  --glow-c: rgba(34, 224, 255, 0.5);
+
+  /* Typography */
+  --font-display: "Saira", system-ui, sans-serif;
+  --font-mono: "Space Mono", ui-monospace, monospace;
+
+  /* Layout */
+  --max-width: 1240px;
+  --padding: 24px;
+  --radius: 2px;
+
+  /* Easing */
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ========== RESET & BASE ========== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--void);
+  color: var(--white);
+  font-family: var(--font-display);
+  font-weight: 500;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  position: relative;
+  min-height: 100vh;
+}
+
+/* Grid background */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 64px 64px;
+  opacity: 0.13;
+  -webkit-mask-image: radial-gradient(circle at 50% 20%, #000, transparent 78%);
+  mask-image: radial-gradient(circle at 50% 20%, #000, transparent 78%);
+}
+
+/* Scanlines overlay */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0 2px,
+    rgba(0, 0, 0, 0.15) 3px,
+    rgba(0, 0, 0, 0) 4px
+  );
+  mix-blend-mode: overlay;
+  opacity: 0.5;
+}
+
+/* Text selection */
+::selection {
+  background: var(--magenta);
+  color: #fff;
+}
+
+/* Links */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Images */
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* Buttons */
+button {
+  font-family: inherit;
+}
+
+/* ========== UTILITIES ========== */
+
+/* Main container */
+.container {
+  max-width: var(--max-width);
+  margin-inline: auto;
+  padding-inline: 24px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Typography utilities */
+.mono {
+  font-family: var(--font-mono);
+  font-weight: 400;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.eyebrow::before {
+  content: "";
+  width: 22px;
+  height: 1px;
+  background: var(--cyan);
+  opacity: 0.7;
+}
+
+/* Fade in animation */
+.fadein {
+  animation: fade 0.5s var(--ease);
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Reduce motion respect */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
