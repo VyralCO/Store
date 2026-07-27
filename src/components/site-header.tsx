@@ -20,6 +20,7 @@ export function SiteHeader() {
           <Link href="/">Início</Link>
           <Link href="/loja">Loja</Link>
           <Link href="/personalizar">Monte a sua</Link>
+          <Link href="/conta">Conta</Link>
         </div>
 
         {/* Sacola */}
