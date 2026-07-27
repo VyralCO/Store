@@ -212,3 +212,9 @@ create policy "own order items"
 -- Admin/service_role bypassa RLS automaticamente.
 -- Orders, order_items, production_queue, admin_users:
 -- sem políticas públicas — só acessíveis via service_role (server-side).
+
+-- Admin pode ver seu próprio registro (necessário para middleware)
+drop policy if exists "own admin record" on public.admin_users;
+create policy "own admin record"
+  on public.admin_users for select
+  using (auth.uid() = user_id);
