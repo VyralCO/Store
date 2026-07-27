@@ -42,7 +42,7 @@ export default function CarrinhoPage() {
               <div>
                 <h4>{i.name}</h4>
                 <div className="meta">
-                  Tamanho {i.size}
+                  {i.color === "branca" ? "🤍 Branca" : "🖤 Preta"} · Tamanho {i.size}
                   {i.custom ? " · personalizada" : ""}
                 </div>
                 <button className="rm" onClick={() => removeItem(i.key)}>

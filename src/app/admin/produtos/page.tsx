@@ -13,23 +13,18 @@ export default async function AdminProdutosPage() {
 async function ProdutosContent() {
   const supabase = createAdminClient();
 
-  const { data: products } = await supabase
-    .from("products")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  const { data: variants } = await supabase.from("variants").select("*");
-
-  const variantsMap: Record<string, { size: string; stock: number }[]> = {};
-  variants?.forEach((v) => {
-    if (!variantsMap[v.product_id]) variantsMap[v.product_id] = [];
-    variantsMap[v.product_id].push({ size: v.size, stock: v.stock });
-  });
+  const [productsRes, categoriesRes] = await Promise.all([
+    supabase
+      .from("products")
+      .select("*, categories(name)")
+      .order("created_at", { ascending: false }),
+    supabase.from("categories").select("*").order("name"),
+  ]);
 
   return (
     <ProductsManager
-      products={products ?? []}
-      variantsMap={variantsMap}
+      products={productsRes.data ?? []}
+      categories={categoriesRes.data ?? []}
     />
   );
 }

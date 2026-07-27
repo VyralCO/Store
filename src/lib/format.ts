@@ -27,7 +27,7 @@ export const BUSINESS = {
   STANDARD_WEIGHT_G: 240,
 
   // Collections
-  COLLECTIONS: ["preta", "branca", "meme"] as const,
+  COLLECTIONS: ["preta", "branca"] as const,
 } as const;
 
 /**
@@ -37,27 +37,4 @@ export function calculateShipping(subtotal: number): number {
   return subtotal >= BUSINESS.FREE_SHIPPING_THRESHOLD
     ? 0
     : BUSINESS.STANDARD_SHIPPING_COST;
-}
-
-/**
- * Product type
- */
-export interface Product {
-  id: string;
-  name: string;
-  category: string;
-  color: (typeof BUSINESS.COLLECTIONS)[number];
-  price: number;
-  oldPrice?: number;
-  badge?: string;
-  description: string;
-  image: string;
-}
-
-/**
- * Cart item type
- */
-export interface CartItem extends Product {
-  size: (typeof BUSINESS.SIZES)[number];
-  quantity: number;
 }

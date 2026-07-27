@@ -5,23 +5,59 @@ import Link from "next/link";
 import { ProductCard } from "@/components/product-card";
 import type { Product } from "@/types/product";
 
-type Filter = "all" | "preta" | "branca" | "meme";
+type Filter = "all" | "preta" | "branca";
 
 const CHIPS: { value: Filter; label: string }[] = [
   { value: "all", label: "Tudo" },
   { value: "preta", label: "Pretas" },
   { value: "branca", label: "Brancas" },
-  { value: "meme", label: "Meme" },
 ];
 
-export function ShopGrid({ products }: { products: Product[] }) {
+export function ShopGrid({ products, initialSearch }: { products: Product[]; initialSearch?: string }) {
   const [filter, setFilter] = useState<Filter>("all");
+  const [search, setSearch] = useState(initialSearch ?? "");
+
+  const searched = search.trim()
+    ? products.filter((p) => {
+        const q = search.toLowerCase();
+        return (
+          p.name.toLowerCase().includes(q) ||
+          p.description.toLowerCase().includes(q) ||
+          (p.keywords && p.keywords.toLowerCase().includes(q)) ||
+          (p.categoryName && p.categoryName.toLowerCase().includes(q))
+        );
+      })
+    : products;
 
   const list =
-    filter === "all" ? products : products.filter((p) => p.color === filter);
+    filter === "all"
+      ? searched
+      : searched.filter((p) =>
+          filter === "preta" ? p.availableBlack : p.availableWhite,
+        );
 
   return (
     <>
+      {/* Search bar */}
+      <div style={{ marginBottom: 16 }}>
+        <input
+          type="text"
+          placeholder="Pesquisar estampas..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{
+            width: "100%",
+            padding: "12px 16px",
+            background: "#111118",
+            border: "1px solid #1e1e2a",
+            borderRadius: 10,
+            color: "#fff",
+            fontSize: "0.95rem",
+            outline: "none",
+          }}
+        />
+      </div>
+
       <div className="filters">
         {CHIPS.map((c) => (
           <button
@@ -33,7 +69,7 @@ export function ShopGrid({ products }: { products: Product[] }) {
           </button>
         ))}
         <span className="count">
-          {list.length} {list.length === 1 ? "peça" : "peças"}
+          {list.length} {list.length === 1 ? "estampa" : "estampas"}
         </span>
       </div>
 

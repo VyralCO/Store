@@ -3,6 +3,8 @@ import { formatMoney } from "@/lib/format";
 import type { Product } from "@/types/product";
 
 export function ProductCard({ product }: { product: Product }) {
+  const imagePath = product.mockupBlackPath || product.mockupWhitePath || "/assets/produtos/placeholder.jpg";
+
   const price = (
     <>
       {product.oldPrice ? <s>{formatMoney(product.oldPrice)}</s> : null}
@@ -19,10 +21,10 @@ export function ProductCard({ product }: { product: Product }) {
       ) : null}
       <div className="card-media">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={product.imagePath} alt={product.name} loading="lazy" />
+        <img src={imagePath} alt={product.name} loading="lazy" />
       </div>
       <div className="card-info">
-        <div className="cat">{product.category}</div>
+        <div className="cat">{product.categoryName ?? "Estampa"}</div>
         <h3>{product.name}</h3>
         <div className="card-row">
           <div className="card-price">{price}</div>

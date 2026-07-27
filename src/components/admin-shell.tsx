@@ -4,10 +4,12 @@ import { createClient } from "@/lib/supabase/server";
 
 const NAV = [
   { href: "/admin", label: "Dashboard", icon: "📊" },
+  { href: "/admin/estoque", label: "Estoque", icon: "📦" },
   { href: "/admin/produtos", label: "Produtos", icon: "👕" },
-  { href: "/admin/estampas", label: "Estampas", icon: "🎨" },
-  { href: "/admin/pedidos", label: "Pedidos", icon: "📦" },
+  { href: "/admin/categorias", label: "Categorias", icon: "🏷️" },
+  { href: "/admin/pedidos", label: "Pedidos", icon: "🛒" },
   { href: "/admin/producao", label: "Produção DTF", icon: "🏭" },
+  { href: "/admin/clientes", label: "Clientes", icon: "👥" },
   { href: "/admin/uploads", label: "Uploads Clientes", icon: "📤" },
 ];
 

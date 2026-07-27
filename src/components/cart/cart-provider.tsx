@@ -14,12 +14,13 @@ import { BUSINESS, calculateShipping } from "@/lib/format";
 
 /** Item da sacola (persistido em localStorage). */
 export interface CartLine {
-  /** Chave única: slug + tamanho (ou custom-<timestamp> para personalizadas). */
+  /** Chave única: slug + tamanho + cor (ou custom-<timestamp> para personalizadas). */
   key: string;
   slug: string;
   name: string;
   price: number;
   size: string;
+  color?: string;
   qty: number;
   /** Imagem exibida no thumbnail do carrinho/checkout. */
   imagePath: string;
@@ -41,12 +42,13 @@ export interface CartLine {
 
 /** Dados necessários para adicionar um item. */
 export interface AddToCartInput {
-  /** Chave explícita (usada por itens personalizados). Se ausente, usa slug-size. */
+  /** Chave explícita (usada por itens personalizados). Se ausente, usa slug-size-color. */
   key?: string;
   slug: string;
   name: string;
   price: number;
   size: string;
+  color?: string;
   qty: number;
   imagePath: string;
   custom?: boolean;
@@ -128,7 +130,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addItem = useCallback(
     (input: AddToCartInput) => {
-      const key = input.key ?? `${input.slug}-${input.size}`;
+      const key = input.key ?? `${input.slug}-${input.size}-${input.color ?? 'preta'}`;
 
       // Extrai o File (não serializável) da linha persistida e guarda em memória.
       const { originalFile, ...line } = input;

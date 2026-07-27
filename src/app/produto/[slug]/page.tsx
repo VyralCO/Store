@@ -6,7 +6,7 @@ import { ProductDetail } from "@/components/product-detail";
 import {
   getProductBySlug,
   getProducts,
-  getVariantsBySlug,
+  getStockByColor,
 } from "@/lib/products";
 
 interface PageProps {
@@ -28,13 +28,16 @@ export async function generateMetadata({
 export default async function ProdutoPage({ params }: PageProps) {
   const { slug } = await params;
 
-  const [product, variants, all] = await Promise.all([
+  const [product, all] = await Promise.all([
     getProductBySlug(slug),
-    getVariantsBySlug(slug),
     getProducts(),
   ]);
 
   if (!product) notFound();
+
+  // Get stock for available colors
+  const stockBlack = product.availableBlack ? await getStockByColor("preta") : [];
+  const stockWhite = product.availableWhite ? await getStockByColor("branca") : [];
 
   const related = all.filter((p) => p.slug !== product.slug).slice(0, 3);
 
@@ -45,15 +48,11 @@ export default async function ProdutoPage({ params }: PageProps) {
         {product.name}
       </div>
 
-      <div className="pdp">
-        <div className="pdp-media">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={product.imagePath} alt={product.name} />
-          <span className="zoom">ESTAMPA COSTAS</span>
-        </div>
-
-        <ProductDetail product={product} variants={variants} />
-      </div>
+      <ProductDetail
+        product={product}
+        stockBlack={stockBlack}
+        stockWhite={stockWhite}
+      />
 
       {related.length > 0 && (
         <section className="section" style={{ paddingTop: "50px" }}>

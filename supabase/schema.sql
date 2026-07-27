@@ -7,45 +7,49 @@
 create extension if not exists "pgcrypto";
 
 -- ============================================================
--- PRODUCTS — catálogo de peças
+-- CATEGORIES — categorias de estampas/produtos
+-- ============================================================
+create table if not exists public.categories (
+  id          uuid primary key default gen_random_uuid(),
+  name        text not null unique,
+  slug        text not null unique,
+  created_at  timestamptz not null default now()
+);
+
+-- ============================================================
+-- TSHIRT_STOCK — estoque de camisetas em branco (matéria-prima)
+-- Gerenciado por cor × tamanho
+-- ============================================================
+create table if not exists public.tshirt_stock (
+  id      uuid primary key default gen_random_uuid(),
+  color   text not null check (color in ('preta','branca')),
+  size    text not null check (size in ('P','M','G','GG','XG')),
+  stock   integer not null default 0 check (stock >= 0),
+  unique (color, size)
+);
+
+-- ============================================================
+-- PRODUCTS — estampas à venda (cada estampa = 1 produto)
 -- ============================================================
 create table if not exists public.products (
-  id           uuid primary key default gen_random_uuid(),
-  slug         text not null unique,
-  name         text not null,
-  category     text not null,               -- ex: "Oversized · Preta"
-  color        text not null,               -- 'preta' | 'branca' | 'meme'
-  price        numeric(10,2) not null,      -- preço atual
-  old_price    numeric(10,2),               -- preço antigo (riscado), opcional
-  badge        text,                        -- 'DROP' | 'HYPE' | 'MEME' | null
-  badge_cyan   boolean not null default false,
-  description  text not null,
-  image_path   text not null,               -- ex: "/assets/produtos/seppuku.jpg"
-  active       boolean not null default true,
-  created_at   timestamptz not null default now()
-);
-
--- ============================================================
--- VARIANTS — estoque por tamanho (P/M/G/GG/XG)
--- ============================================================
-create table if not exists public.variants (
-  id          uuid primary key default gen_random_uuid(),
-  product_id  uuid not null references public.products(id) on delete cascade,
-  size        text not null check (size in ('P','M','G','GG','XG')),
-  stock       integer not null default 0 check (stock >= 0),
-  unique (product_id, size)
-);
-
--- ============================================================
--- DESIGNS — banco de estampas cadastradas pelo admin
--- ============================================================
-create table if not exists public.designs (
-  id          uuid primary key default gen_random_uuid(),
-  name        text not null,
-  category    text not null default 'geral',     -- tag/categoria da estampa
-  image_path  text not null,                      -- caminho no Storage
-  active      boolean not null default true,
-  created_at  timestamptz not null default now()
+  id                uuid primary key default gen_random_uuid(),
+  slug              text not null unique,
+  name              text not null,
+  category_id       uuid references public.categories(id) on delete set null,
+  price             numeric(10,2) not null,
+  old_price         numeric(10,2),
+  badge             text,
+  badge_cyan        boolean not null default false,
+  description       text not null,
+  keywords          text,                              -- palavras-chave separadas por vírgula
+  available_black   boolean not null default true,     -- disponível na camiseta preta?
+  available_white   boolean not null default false,    -- disponível na camiseta branca?
+  dtf_black_path    text,                              -- arquivo DTF para preta (interno)
+  dtf_white_path    text,                              -- arquivo DTF para branca (interno)
+  mockup_black_path text,                              -- mockup na camiseta preta (cliente vê)
+  mockup_white_path text,                              -- mockup na camiseta branca (cliente vê)
+  active            boolean not null default true,
+  created_at        timestamptz not null default now()
 );
 
 -- ============================================================
@@ -139,11 +143,10 @@ create table if not exists public.admin_users (
 -- ÍNDICES
 -- ============================================================
 create index if not exists idx_products_slug        on public.products (slug);
-create index if not exists idx_products_color       on public.products (color);
-create index if not exists idx_variants_product     on public.variants (product_id);
+create index if not exists idx_products_category    on public.products (category_id);
+create index if not exists idx_categories_slug      on public.categories (slug);
+create index if not exists idx_tshirt_stock_color   on public.tshirt_stock (color);
 create index if not exists idx_order_items_order    on public.order_items (order_id);
-create index if not exists idx_designs_category     on public.designs (category);
-create index if not exists idx_designs_active       on public.designs (active);
 create index if not exists idx_custom_uploads_status on public.custom_uploads (status);
 create index if not exists idx_production_status    on public.production_queue (status);
 create index if not exists idx_production_batch     on public.production_queue (batch_id);
@@ -154,10 +157,10 @@ create index if not exists idx_orders_customer      on public.orders (customer_i
 -- ROW LEVEL SECURITY
 -- ============================================================
 alter table public.products          enable row level security;
-alter table public.variants          enable row level security;
+alter table public.tshirt_stock      enable row level security;
+alter table public.categories        enable row level security;
 alter table public.orders            enable row level security;
 alter table public.order_items       enable row level security;
-alter table public.designs           enable row level security;
 alter table public.custom_uploads    enable row level security;
 alter table public.production_queue  enable row level security;
 alter table public.admin_users       enable row level security;
@@ -168,16 +171,17 @@ create policy "public read products"
   on public.products for select
   using (active = true);
 
-drop policy if exists "public read variants" on public.variants;
-create policy "public read variants"
-  on public.variants for select
+-- Categorias são públicas para leitura
+drop policy if exists "public read categories" on public.categories;
+create policy "public read categories"
+  on public.categories for select
   using (true);
 
--- Designs ativos são públicos (galeria na personalização)
-drop policy if exists "public read designs" on public.designs;
-create policy "public read designs"
-  on public.designs for select
-  using (active = true);
+-- Estoque de camisetas é público para leitura (verificar disponibilidade)
+drop policy if exists "public read tshirt_stock" on public.tshirt_stock;
+create policy "public read tshirt_stock"
+  on public.tshirt_stock for select
+  using (true);
 
 -- Cliente pode ver seus próprios uploads
 drop policy if exists "own uploads" on public.custom_uploads;

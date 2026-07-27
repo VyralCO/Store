@@ -3,7 +3,57 @@
 import { createAdminClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
-// ─── PRODUCTS ───
+// ─── CATEGORIES ───
+
+export async function createCategory(formData: FormData) {
+  const supabase = createAdminClient();
+  const name = (formData.get("name") as string).trim();
+  const slug = name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+
+  const { error } = await supabase.from("categories").insert({ name, slug });
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/categorias");
+  revalidatePath("/admin/produtos");
+}
+
+export async function updateCategory(id: string, formData: FormData) {
+  const supabase = createAdminClient();
+  const name = (formData.get("name") as string).trim();
+  const slug = name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+
+  const { error } = await supabase.from("categories").update({ name, slug }).eq("id", id);
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/categorias");
+  revalidatePath("/admin/produtos");
+}
+
+export async function deleteCategory(id: string) {
+  const supabase = createAdminClient();
+  const { error } = await supabase.from("categories").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/categorias");
+  revalidatePath("/admin/produtos");
+}
+
+// ─── TSHIRT STOCK ───
+
+export async function updateTshirtStock(items: { color: string; size: string; stock: number }[]) {
+  const supabase = createAdminClient();
+
+  for (const item of items) {
+    const { error } = await supabase
+      .from("tshirt_stock")
+      .upsert(
+        { color: item.color, size: item.size, stock: item.stock },
+        { onConflict: "color,size" },
+      );
+    if (error) throw new Error(error.message);
+  }
+
+  revalidatePath("/admin/estoque");
+}
+
+// ─── PRODUCTS (ESTAMPAS) ───
 
 export async function createProduct(formData: FormData) {
   const supabase = createAdminClient();
@@ -12,14 +62,19 @@ export async function createProduct(formData: FormData) {
   const { error } = await supabase.from("products").insert({
     slug,
     name: formData.get("name") as string,
-    category: formData.get("category") as string,
-    color: formData.get("color") as string,
+    category_id: (formData.get("category_id") as string) || null,
     price: Number(formData.get("price")),
     old_price: formData.get("old_price") ? Number(formData.get("old_price")) : null,
     badge: (formData.get("badge") as string) || null,
     badge_cyan: formData.get("badge_cyan") === "on",
     description: formData.get("description") as string,
-    image_path: (formData.get("image_path") as string) || `/assets/produtos/${slug}.jpg`,
+    keywords: (formData.get("keywords") as string) || null,
+    available_black: formData.get("available_black") === "on",
+    available_white: formData.get("available_white") === "on",
+    dtf_black_path: (formData.get("dtf_black_path") as string) || null,
+    dtf_white_path: (formData.get("dtf_white_path") as string) || null,
+    mockup_black_path: (formData.get("mockup_black_path") as string) || null,
+    mockup_white_path: (formData.get("mockup_white_path") as string) || null,
     active: formData.get("active") !== "off",
   });
 
@@ -35,14 +90,19 @@ export async function updateProduct(id: string, formData: FormData) {
     .from("products")
     .update({
       name: formData.get("name") as string,
-      category: formData.get("category") as string,
-      color: formData.get("color") as string,
+      category_id: (formData.get("category_id") as string) || null,
       price: Number(formData.get("price")),
       old_price: formData.get("old_price") ? Number(formData.get("old_price")) : null,
       badge: (formData.get("badge") as string) || null,
       badge_cyan: formData.get("badge_cyan") === "on",
       description: formData.get("description") as string,
-      image_path: formData.get("image_path") as string,
+      keywords: (formData.get("keywords") as string) || null,
+      available_black: formData.get("available_black") === "on",
+      available_white: formData.get("available_white") === "on",
+      dtf_black_path: (formData.get("dtf_black_path") as string) || null,
+      dtf_white_path: (formData.get("dtf_white_path") as string) || null,
+      mockup_black_path: (formData.get("mockup_black_path") as string) || null,
+      mockup_white_path: (formData.get("mockup_white_path") as string) || null,
       active: formData.get("active") !== "off",
     })
     .eq("id", id);
@@ -58,69 +118,6 @@ export async function deleteProduct(id: string) {
   if (error) throw new Error(error.message);
   revalidatePath("/admin/produtos");
   revalidatePath("/loja");
-}
-
-export async function updateVariants(
-  productId: string,
-  variants: { size: string; stock: number }[],
-) {
-  const supabase = createAdminClient();
-
-  // Delete existing variants and re-insert
-  await supabase.from("variants").delete().eq("product_id", productId);
-
-  if (variants.length > 0) {
-    const { error } = await supabase.from("variants").insert(
-      variants.map((v) => ({
-        product_id: productId,
-        size: v.size,
-        stock: v.stock,
-      })),
-    );
-    if (error) throw new Error(error.message);
-  }
-
-  revalidatePath("/admin/produtos");
-}
-
-// ─── DESIGNS (ESTAMPAS) ───
-
-export async function createDesign(formData: FormData) {
-  const supabase = createAdminClient();
-
-  const { error } = await supabase.from("designs").insert({
-    name: formData.get("name") as string,
-    category: formData.get("category") as string,
-    image_path: formData.get("image_path") as string,
-    active: formData.get("active") !== "off",
-  });
-
-  if (error) throw new Error(error.message);
-  revalidatePath("/admin/estampas");
-}
-
-export async function updateDesign(id: string, formData: FormData) {
-  const supabase = createAdminClient();
-
-  const { error } = await supabase
-    .from("designs")
-    .update({
-      name: formData.get("name") as string,
-      category: formData.get("category") as string,
-      image_path: formData.get("image_path") as string,
-      active: formData.get("active") !== "off",
-    })
-    .eq("id", id);
-
-  if (error) throw new Error(error.message);
-  revalidatePath("/admin/estampas");
-}
-
-export async function deleteDesign(id: string) {
-  const supabase = createAdminClient();
-  const { error } = await supabase.from("designs").delete().eq("id", id);
-  if (error) throw new Error(error.message);
-  revalidatePath("/admin/estampas");
 }
 
 // ─── ORDERS ───
@@ -215,6 +212,7 @@ export async function createOrder(formData: FormData, cartItems: {
   slug: string;
   name: string;
   size: string;
+  color: string;
   price: number;
   qty: number;
   imagePath: string;
@@ -283,6 +281,26 @@ export async function createOrder(formData: FormData, cartItems: {
 
   if (itemsError) throw new Error(itemsError.message);
 
+  // Deduct from tshirt_stock
+  for (const item of cartItems) {
+    if (item.custom) continue;
+    const { data: stockRow } = await supabase
+      .from("tshirt_stock")
+      .select("stock")
+      .eq("color", item.color)
+      .eq("size", item.size)
+      .single();
+
+    if (stockRow) {
+      const newStock = Math.max(0, stockRow.stock - item.qty);
+      await supabase
+        .from("tshirt_stock")
+        .update({ stock: newStock })
+        .eq("color", item.color)
+        .eq("size", item.size);
+    }
+  }
+
   // Add items to production queue
   if (insertedItems) {
     const queueItems = insertedItems.map((item) => ({
@@ -296,6 +314,7 @@ export async function createOrder(formData: FormData, cartItems: {
 
   revalidatePath("/admin/pedidos");
   revalidatePath("/admin/producao");
+  revalidatePath("/admin/estoque");
 
   return { orderNumber: order.order_number, orderId: order.id };
 }

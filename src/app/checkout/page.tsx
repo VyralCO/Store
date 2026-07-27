@@ -63,6 +63,7 @@ export default function CheckoutPage() {
         slug: i.slug,
         name: i.name,
         size: i.size,
+        color: i.color ?? "preta",
         price: i.price,
         qty: i.qty,
         imagePath: i.imagePath,
