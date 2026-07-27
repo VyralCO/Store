@@ -1,10 +1,11 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import {
   Saira as SairaFont,
   Space_Mono as SpaceMonoFont,
 } from "next/font/google";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { CartProvider } from "@/components/cart/cart-provider";
 import "./globals.css";
 
 const saira = SairaFont({
@@ -25,7 +26,11 @@ const spaceMono = SpaceMonoFont({
 export const metadata: Metadata = {
   title: "VYRAL — O HYPE VIRA ROUPA",
   description: "E-commerce de streetwear oversized da marca VYRAL",
-  viewport: "width=device-width, initial-scale=1",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -39,9 +44,11 @@ export default function RootLayout({
       className={`${saira.variable} ${spaceMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-void text-white relative">
-        <SiteHeader />
-        <main className="flex-1 relative z-1">{children}</main>
-        <SiteFooter />
+        <CartProvider>
+          <SiteHeader />
+          <main className="flex-1 relative z-1">{children}</main>
+          <SiteFooter />
+        </CartProvider>
       </body>
     </html>
   );
