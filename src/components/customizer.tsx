@@ -47,8 +47,8 @@ const COLORS: ShirtColor[] = [
 
 type PrintLayout = "center" | "full";
 const LAYOUTS: { value: PrintLayout; label: string; desc: string; scale: number; posY: number }[] = [
-  { value: "center", label: "Centralizada", desc: "Quadrado central", scale: 120, posY: 220 },
-  { value: "full", label: "Full", desc: "Máximo possível", scale: 260, posY: 230 },
+  { value: "center", label: "Centralizada", desc: "Quadrado central", scale: 100, posY: 210 },
+  { value: "full", label: "Full", desc: "Máximo possível", scale: 150, posY: 220 },
 ];
 
 const CUSTOM_PRICE = BUSINESS.CUSTOM_TSHIRT_PRICE;
@@ -302,16 +302,8 @@ export function Customizer() {
             {fileName && <div className="fn">✓ {fileName}</div>}
             {processing && <div className="proc">removendo fundo pro preview…</div>}
           </div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            hidden
-            onChange={(e) => load(e.target.files?.[0])}
-          />
-
           {/* Toggle remoção de fundo */}
-          <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
+          <div style={{ marginTop: 12, marginBottom: 12, display: "flex", gap: 8 }}>
             <button
               className={`chip${removeBg ? " active" : ""}`}
               onClick={() => setRemoveBg(true)}
@@ -327,6 +319,14 @@ export function Customizer() {
               Manter original
             </button>
           </div>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={(e) => load(e.target.files?.[0])}
+          />
 
           {originalFile && (
             <>
