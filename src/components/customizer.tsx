@@ -47,8 +47,8 @@ const COLORS: ShirtColor[] = [
 
 type PrintLayout = "center" | "full";
 const LAYOUTS: { value: PrintLayout; label: string; desc: string; scale: number; posY: number }[] = [
-  { value: "center", label: "Centralizada", desc: "Quadrado central", scale: 100, posY: 210 },
-  { value: "full", label: "Full", desc: "Máximo possível", scale: 150, posY: 220 },
+  { value: "center", label: "Centralizada", desc: "Quadrado central", scale: 70, posY: 220 },
+  { value: "full", label: "Full", desc: "Máximo possível", scale: 170, posY: 220 },
 ];
 
 const CUSTOM_PRICE = BUSINESS.CUSTOM_TSHIRT_PRICE;
@@ -266,6 +266,23 @@ export function Customizer() {
             <span className="n">01</span>
             <h3>Sua imagem</h3>
           </div>
+          {/* Toggle remoção de fundo — antes do upload */}
+          <div style={{ marginBottom: 12, display: "flex", gap: 8 }}>
+            <button
+              className={`chip${removeBg ? " active" : ""}`}
+              onClick={() => setRemoveBg(true)}
+              style={{ fontSize: "0.75rem", padding: "6px 14px" }}
+            >
+              Remover fundo
+            </button>
+            <button
+              className={`chip${!removeBg ? " active" : ""}`}
+              onClick={() => setRemoveBg(false)}
+              style={{ fontSize: "0.75rem", padding: "6px 14px" }}
+            >
+              Manter original
+            </button>
+          </div>
           <div
             className={`drop${originalFile ? " has" : ""}${dragging ? " drag" : ""}`}
             onClick={() => fileInputRef.current?.click()}
@@ -301,23 +318,6 @@ export function Customizer() {
             <small>PNG ou JPG · até 10MB</small>
             {fileName && <div className="fn">✓ {fileName}</div>}
             {processing && <div className="proc">removendo fundo pro preview…</div>}
-          </div>
-          {/* Toggle remoção de fundo */}
-          <div style={{ marginTop: 12, marginBottom: 12, display: "flex", gap: 8 }}>
-            <button
-              className={`chip${removeBg ? " active" : ""}`}
-              onClick={() => setRemoveBg(true)}
-              style={{ fontSize: "0.75rem", padding: "6px 14px" }}
-            >
-              Remover fundo
-            </button>
-            <button
-              className={`chip${!removeBg ? " active" : ""}`}
-              onClick={() => setRemoveBg(false)}
-              style={{ fontSize: "0.75rem", padding: "6px 14px" }}
-            >
-              Manter original
-            </button>
           </div>
 
           <input
