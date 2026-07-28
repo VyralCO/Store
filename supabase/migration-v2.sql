@@ -77,6 +77,6 @@ create policy "public read tshirt_stock"
   on public.tshirt_stock for select
   using (true);
 
--- Remover policies de tabelas deletadas (ignora erros)
-drop policy if exists "public read variants" on public.variants;
-drop policy if exists "public read designs" on public.designs;
+-- Remover policies de tabelas deletadas (já removidas pelo cascade)
+-- drop policy if exists "public read variants" on public.variants;
+-- drop policy if exists "public read designs" on public.designs;

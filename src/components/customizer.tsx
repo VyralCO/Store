@@ -43,7 +43,12 @@ interface ShirtColor {
 const COLORS: ShirtColor[] = [
   { bg: "#0c0c10", collar: "#141419", stroke: "#1c1c24" },
   { bg: "#e8e8e6", collar: "#dad9d5", stroke: "#cfcfca" },
-  { bg: "#12203a", collar: "#182a4a", stroke: "#1e3050" },
+];
+
+type PrintLayout = "center" | "full";
+const LAYOUTS: { value: PrintLayout; label: string; desc: string; scale: number; posY: number }[] = [
+  { value: "center", label: "Centralizada", desc: "Quadrado central", scale: 120, posY: 220 },
+  { value: "full", label: "Full", desc: "Máximo possível", scale: 260, posY: 230 },
 ];
 
 const CUSTOM_PRICE = BUSINESS.CUSTOM_TSHIRT_PRICE;
@@ -68,10 +73,14 @@ export function Customizer() {
 
   // Ajustes do mockup.
   const [color, setColor] = useState(0);
-  const [scale, setScale] = useState(130);
-  const [posY, setPosY] = useState(205);
+  const [layout, setLayout] = useState<PrintLayout>("center");
   const [size, setSize] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
+  const [removeBg, setRemoveBg] = useState(true);
+
+  const currentLayout = LAYOUTS.find((l) => l.value === layout) ?? LAYOUTS[0];
+  const scale = currentLayout.scale;
+  const posY = currentLayout.posY;
 
   const simTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -126,36 +135,37 @@ export function Customizer() {
     }
 
     // Remoção de fundo → versão SÓ de exibição (descartável).
-    setProcessing(true);
-    startSimProgress();
-    try {
-      const mod = await getBgModule();
-      await ensureBgPreloaded(); // rápido se já pré-carregado no mount
-      const blob = await mod.removeBackground(file, {
-        // Usa progresso real quando disponível; nunca deixa recuar nem cravar 100%.
-        progress: (_key, current, total) => {
-          if (total > 0) {
-            const pct = Math.round((current / total) * 100);
-            setProgress((p) => Math.min(95, Math.max(p, pct)));
-          }
-        },
-      });
-      setPreviewUrl(URL.createObjectURL(blob));
-      setProgress(100);
-    } catch (err) {
-      // Falhou (offline / sem WASM): cai pro original só no preview visual.
-      console.warn("[customizer] remoção de fundo falhou, usando original no preview:", err);
+    if (removeBg) {
+      setProcessing(true);
+      startSimProgress();
+      try {
+        const mod = await getBgModule();
+        await ensureBgPreloaded();
+        const blob = await mod.removeBackground(file, {
+          progress: (_key, current, total) => {
+            if (total > 0) {
+              const pct = Math.round((current / total) * 100);
+              setProgress((p) => Math.min(95, Math.max(p, pct)));
+            }
+          },
+        });
+        setPreviewUrl(URL.createObjectURL(blob));
+        setProgress(100);
+      } catch (err) {
+        console.warn("[customizer] remoção de fundo falhou, usando original no preview:", err);
+        setPreviewUrl(origUrl);
+        setProgress(100);
+      } finally {
+        stopSimProgress();
+        setProcessing(false);
+      }
+    } else {
+      // Sem remoção de fundo — usa a imagem como está
       setPreviewUrl(origUrl);
-      setProgress(100);
-    } finally {
-      stopSimProgress();
-      setProcessing(false);
     }
   }
 
-  function posLabel(v: number) {
-    return v < 180 ? "alto" : v > 250 ? "baixo" : "peito";
-  }
+
 
   function add() {
     if (!printedImage) {
@@ -170,6 +180,7 @@ export function Customizer() {
       name: "CAMISETA PERSONALIZADA",
       price: CUSTOM_PRICE,
       size,
+      color: color === 0 ? "preta" : "branca",
       qty: 1,
       // Thumbnail do carrinho = preview sem fundo.
       imagePath: previewUrl ?? originalUrl ?? "",
@@ -299,6 +310,24 @@ export function Customizer() {
             onChange={(e) => load(e.target.files?.[0])}
           />
 
+          {/* Toggle remoção de fundo */}
+          <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
+            <button
+              className={`chip${removeBg ? " active" : ""}`}
+              onClick={() => setRemoveBg(true)}
+              style={{ fontSize: "0.75rem", padding: "6px 14px" }}
+            >
+              Remover fundo
+            </button>
+            <button
+              className={`chip${!removeBg ? " active" : ""}`}
+              onClick={() => setRemoveBg(false)}
+              style={{ fontSize: "0.75rem", padding: "6px 14px" }}
+            >
+              Manter original
+            </button>
+          </div>
+
           {originalFile && (
             <>
               <div className="qnote">
@@ -316,11 +345,11 @@ export function Customizer() {
           )}
         </div>
 
-        {/* 02 — Cor & ajuste */}
+        {/* 02 — Cor & layout */}
         <div className="block">
           <div className="h">
             <span className="n">02</span>
-            <h3>Cor &amp; ajuste</h3>
+            <h3>Cor &amp; layout</h3>
           </div>
           <div className="cw-row">
             {COLORS.map((col, i) => (
@@ -329,38 +358,24 @@ export function Customizer() {
                 className={`cw${color === i ? " active" : ""}`}
                 style={{ background: col.bg }}
                 onClick={() => setColor(i)}
-                aria-label={`Cor ${i + 1}`}
+                aria-label={i === 0 ? "Preta" : "Branca"}
                 aria-pressed={color === i}
               />
             ))}
           </div>
-          <div className="ctrl" style={{ marginTop: "18px" }}>
-            <label>
-              Tamanho <b>{scale}%</b>
-            </label>
-            <input
-              type="range"
-              min={40}
-              max={300}
-              value={scale}
-              disabled={!printedImage}
-              onChange={(e) => setScale(Number(e.target.value))}
-              aria-label="Tamanho da estampa"
-            />
-          </div>
-          <div className="ctrl" style={{ marginTop: "14px" }}>
-            <label>
-              Altura <b>{posLabel(posY)}</b>
-            </label>
-            <input
-              type="range"
-              min={120}
-              max={300}
-              value={posY}
-              disabled={!printedImage}
-              onChange={(e) => setPosY(Number(e.target.value))}
-              aria-label="Altura da estampa"
-            />
+          <div style={{ marginTop: 16, display: "flex", gap: 10 }}>
+            {LAYOUTS.map((l) => (
+              <button
+                key={l.value}
+                className={`chip${layout === l.value ? " active" : ""}`}
+                onClick={() => setLayout(l.value)}
+                style={{ flex: 1, padding: "10px 0", fontSize: "0.8rem" }}
+              >
+                {l.label}
+                <br />
+                <span style={{ fontSize: "0.65rem", opacity: 0.6 }}>{l.desc}</span>
+              </button>
+            ))}
           </div>
         </div>
 

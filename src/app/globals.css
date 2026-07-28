@@ -694,6 +694,36 @@ button {
   }
 }
 
+/* Mobile menu overlay */
+.nav-mobile-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.nav-mobile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+.nav-mobile a {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.6rem;
+  color: #fff;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  transition: color 0.15s;
+}
+.nav-mobile a:hover {
+  color: var(--cyan);
+}
+
 /* ========== FOOTER (1:1 from prototype) ========== */
 .foot {
   border-top: 1px solid var(--line);
