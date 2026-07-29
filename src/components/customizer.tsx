@@ -48,7 +48,7 @@ const COLORS: ShirtColor[] = [
 type PrintLayout = "center" | "full";
 const LAYOUTS: { value: PrintLayout; label: string; desc: string; scale: number; posY: number }[] = [
   { value: "center", label: "Centralizada", desc: "Quadrado central", scale: 170, posY: 220 },
-  { value: "full", label: "Full", desc: "Máximo possível", scale: 320, posY: 240 },
+  { value: "full", label: "Full", desc: "Máximo possível", scale: 260, posY: 236 },
 ];
 
 const CUSTOM_PRICE = BUSINESS.CUSTOM_TSHIRT_PRICE;
