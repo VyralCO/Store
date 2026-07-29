@@ -46,9 +46,9 @@ const COLORS: ShirtColor[] = [
 ];
 
 type PrintLayout = "center" | "full";
-const LAYOUTS: { value: PrintLayout; label: string; desc: string; scale: number; posY: number }[] = [
+const LAYOUTS: { value: PrintLayout; label: string; desc: string; scale: number; scaleH?: number; posY: number }[] = [
   { value: "center", label: "Centralizada", desc: "Quadrado central", scale: 170, posY: 220 },
-  { value: "full", label: "Full", desc: "Máximo possível", scale: 260, posY: 236 },
+  { value: "full", label: "Full", desc: "Máximo possível", scale: 152, scaleH: 210, posY: 250 },
 ];
 
 const CUSTOM_PRICE = BUSINESS.CUSTOM_TSHIRT_PRICE;
@@ -194,6 +194,7 @@ export function Customizer() {
   }
 
   const w = 150 * (scale / 100);
+  const h = 150 * ((currentLayout.scaleH ?? scale) / 100);
   const canAdd = Boolean(printedImage && size);
   const lowRes = dims !== null && Math.max(dims.w, dims.h) < MIN_PRINT_SIDE;
 
@@ -234,9 +235,9 @@ export function Customizer() {
                 <image
                   href={printedImage}
                   x={200 - w / 2}
-                  y={posY - w / 2}
+                  y={posY - h / 2}
                   width={w}
-                  height={w}
+                  height={h}
                   preserveAspectRatio="xMidYMid meet"
                 />
               </g>
