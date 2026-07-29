@@ -271,6 +271,16 @@ function ProductModal({
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
+    // Auto-generate slug from name
+    const name = fd.get("name") as string;
+    if (!fd.get("slug")) {
+      const slug = name
+        .toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "");
+      fd.set("slug", slug);
+    }
     fd.set("dtf_black_path", paths.dtf_black_path);
     fd.set("dtf_white_path", paths.dtf_white_path);
     fd.set("mockup_black_path", paths.mockup_black_path);
@@ -296,16 +306,9 @@ function ProductModal({
               <label>Nome</label>
               <input name="name" required defaultValue={product?.name ?? ""} />
             </div>
-            <div className="adm-field">
-              <label>Slug</label>
-              <input
-                name="slug"
-                required
-                defaultValue={product?.slug ?? ""}
-                readOnly={mode === "edit"}
-                style={mode === "edit" ? { opacity: 0.5 } : undefined}
-              />
-            </div>
+            {mode === "edit" && (
+              <input type="hidden" name="slug" value={product?.slug ?? ""} />
+            )}
           </div>
 
           <div className="adm-field-row">
