@@ -2,12 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Eyebrow } from "@/components/eyebrow";
 import { Customizer } from "@/components/customizer";
+import { getCustomPricing } from "@/app/admin/actions";
 
 export const metadata: Metadata = {
   title: "Monte a sua — VYRAL",
 };
 
-export default function PersonalizarPage() {
+export default async function PersonalizarPage() {
+  const pricing = await getCustomPricing();
+
   return (
     <div className="wrap">
       <div className="crumbs">
@@ -25,7 +28,7 @@ export default function PersonalizarPage() {
         </p>
       </div>
 
-      <Customizer />
+      <Customizer pricing={pricing} />
     </div>
   );
 }

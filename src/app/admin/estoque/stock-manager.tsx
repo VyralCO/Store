@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { updateTshirtStock } from "@/app/admin/actions";
+import { saveStockLevels } from "@/app/admin/actions";
 
 const COLORS = ["preta", "branca"] as const;
 const SIZES = ["P", "M", "G", "GG", "XG"] as const;
@@ -11,15 +11,17 @@ interface StockRow {
   color: string;
   size: string;
   stock: number;
+  initial_stock: number;
 }
 
 export function StockManager({ stock }: { stock: StockRow[] }) {
-  const [values, setValues] = useState<Record<string, number>>(() => {
+  // valores editáveis do estoque INICIAL (total comprado)
+  const [initial, setInitial] = useState<Record<string, number>>(() => {
     const map: Record<string, number> = {};
     for (const c of COLORS) {
       for (const s of SIZES) {
         const row = stock.find((r) => r.color === c && r.size === s);
-        map[`${c}-${s}`] = row?.stock ?? 0;
+        map[`${c}-${s}`] = row?.initial_stock ?? 0;
       }
     }
     return map;
@@ -27,8 +29,21 @@ export function StockManager({ stock }: { stock: StockRow[] }) {
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
 
-  function set(color: string, size: string, val: number) {
-    setValues((prev) => ({ ...prev, [`${color}-${size}`]: Math.max(0, val) }));
+  function available(color: string, size: string): number {
+    const row = stock.find((r) => r.color === color && r.size === size);
+    if (!row) return initial[`${color}-${size}`] ?? 0;
+    // disponível ajustado pela mudança de inicial ainda não salva
+    const delta = (initial[`${color}-${size}`] ?? 0) - (row.initial_stock ?? 0);
+    return Math.max(0, (row.stock ?? 0) + delta);
+  }
+
+  function sold(color: string, size: string): number {
+    const init = initial[`${color}-${size}`] ?? 0;
+    return Math.max(0, init - available(color, size));
+  }
+
+  function setInit(color: string, size: string, val: number) {
+    setInitial((prev) => ({ ...prev, [`${color}-${size}`]: Math.max(0, val) }));
   }
 
   async function save() {
@@ -36,9 +51,9 @@ export function StockManager({ stock }: { stock: StockRow[] }) {
     setMsg("");
     try {
       const items = COLORS.flatMap((c) =>
-        SIZES.map((s) => ({ color: c, size: s, stock: values[`${c}-${s}`] })),
+        SIZES.map((s) => ({ color: c, size: s, initial: initial[`${c}-${s}`] })),
       );
-      await updateTshirtStock(items);
+      await saveStockLevels(items);
       setMsg("Estoque salvo com sucesso!");
     } catch (err) {
       setMsg((err as Error).message);
@@ -47,8 +62,12 @@ export function StockManager({ stock }: { stock: StockRow[] }) {
     }
   }
 
-  const totalPreta = SIZES.reduce((s, sz) => s + (values[`preta-${sz}`] ?? 0), 0);
-  const totalBranca = SIZES.reduce((s, sz) => s + (values[`branca-${sz}`] ?? 0), 0);
+  const totalInit = (color: string) =>
+    SIZES.reduce((s, sz) => s + (initial[`${color}-${sz}`] ?? 0), 0);
+  const totalAvail = (color: string) =>
+    SIZES.reduce((s, sz) => s + available(color, sz), 0);
+  const totalSold = (color: string) =>
+    SIZES.reduce((s, sz) => s + sold(color, sz), 0);
 
   return (
     <>
@@ -71,7 +90,9 @@ export function StockManager({ stock }: { stock: StockRow[] }) {
       )}
 
       <p style={{ color: "#888", fontSize: "0.85rem", marginBottom: 24 }}>
-        Gerencie o estoque de camisetas em branco (matéria-prima). As vendas descontam daqui automaticamente.
+        Edite o <strong>estoque inicial</strong> (total de camisetas em branco compradas).
+        Comprou mais? Aumente o número — o disponível sobe junto. O{" "}
+        <strong>vendido</strong> é descontado quando o pagamento de um pedido é confirmado.
       </p>
 
       {COLORS.map((color) => (
@@ -79,33 +100,35 @@ export function StockManager({ stock }: { stock: StockRow[] }) {
           <h2 style={{ color: "#fff", fontSize: "1.1rem", marginBottom: 12, textTransform: "capitalize" }}>
             Camiseta {color === "preta" ? "Preta 🖤" : "Branca 🤍"}
             <span style={{ color: "#555", fontSize: "0.8rem", marginLeft: 12 }}>
-              Total: {color === "preta" ? totalPreta : totalBranca} peças
+              Inicial: {totalInit(color)} · Vendido: {totalSold(color)} · Disponível: {totalAvail(color)}
             </span>
           </h2>
           <div className="adm-table-wrap">
             <table className="adm-table">
               <thead>
                 <tr>
+                  <th style={{ width: 120 }}></th>
                   {SIZES.map((s) => (
-                    <th key={s} style={{ textAlign: "center", width: "20%" }}>{s}</th>
+                    <th key={s} style={{ textAlign: "center" }}>{s}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 <tr>
+                  <td style={{ color: "#888", fontWeight: 600 }}>Inicial</td>
                   {SIZES.map((s) => (
                     <td key={s} style={{ textAlign: "center" }}>
                       <input
                         type="number"
                         min={0}
-                        value={values[`${color}-${s}`]}
-                        onChange={(e) => set(color, s, Number(e.target.value))}
+                        value={initial[`${color}-${s}`]}
+                        onChange={(e) => setInit(color, s, Number(e.target.value))}
                         style={{
-                          width: 80,
+                          width: 72,
                           background: "#0a0a0f",
                           border: "1px solid #1e1e2a",
                           borderRadius: 8,
-                          padding: "8px 12px",
+                          padding: "8px 10px",
                           color: "#fff",
                           textAlign: "center",
                           fontSize: "1rem",
@@ -113,6 +136,32 @@ export function StockManager({ stock }: { stock: StockRow[] }) {
                       />
                     </td>
                   ))}
+                </tr>
+                <tr>
+                  <td style={{ color: "#888", fontWeight: 600 }}>Vendido</td>
+                  {SIZES.map((s) => (
+                    <td key={s} style={{ textAlign: "center", color: "#ff8888" }}>
+                      {sold(color, s)}
+                    </td>
+                  ))}
+                </tr>
+                <tr>
+                  <td style={{ color: "#888", fontWeight: 600 }}>Disponível</td>
+                  {SIZES.map((s) => {
+                    const av = available(color, s);
+                    return (
+                      <td
+                        key={s}
+                        style={{
+                          textAlign: "center",
+                          fontWeight: 700,
+                          color: av === 0 ? "#ff2d55" : av <= 3 ? "#ffb020" : "#00ff88",
+                        }}
+                      >
+                        {av}
+                      </td>
+                    );
+                  })}
                 </tr>
               </tbody>
             </table>

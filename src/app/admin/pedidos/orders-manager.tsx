@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { formatMoney } from "@/lib/format";
-import { updateOrderStatus, updateOrderTracking } from "../actions";
+import { formatMoney, ORDER_STATUS, ORDER_STATUS_LABELS } from "@/lib/format";
+import { updateOrderStatus, updateOrderTracking, confirmPayment } from "../actions";
 
 interface Order {
   id: string;
   order_number: string;
   status: string;
+  is_custom: boolean | null;
   customer_name: string | null;
   customer_email: string | null;
   customer_phone: string | null;
@@ -25,21 +26,15 @@ interface OrderItem {
   order_id: string;
   product_name: string;
   size: string;
+  color: string | null;
   unit_price: number;
   quantity: number;
   image_path: string | null;
   is_custom: boolean;
 }
 
-const STATUSES = ["pending", "paid", "producing", "shipped", "delivered", "cancelled"] as const;
-const STATUS_LABELS: Record<string, string> = {
-  pending: "Pendente",
-  paid: "Pago",
-  producing: "Produzindo",
-  shipped: "Enviado",
-  delivered: "Entregue",
-  cancelled: "Cancelado",
-};
+const STATUSES = ORDER_STATUS;
+const STATUS_LABELS = ORDER_STATUS_LABELS;
 
 export function OrdersManager({
   orders: initial,
@@ -70,6 +65,17 @@ export function OrdersManager({
     startTransition(async () => {
       try {
         await updateOrderStatus(orderId, status);
+      } catch (e) {
+        setError((e as Error).message);
+      }
+    });
+  }
+
+  function handleConfirmPayment(orderId: string) {
+    startTransition(async () => {
+      try {
+        await confirmPayment(orderId);
+        setDetail(null);
       } catch (e) {
         setError((e as Error).message);
       }
@@ -204,6 +210,7 @@ export function OrdersManager({
                 <thead>
                   <tr>
                     <th>Produto</th>
+                    <th>Cor</th>
                     <th>Tam.</th>
                     <th>Qtd.</th>
                     <th>Preço</th>
@@ -214,6 +221,7 @@ export function OrdersManager({
                   {selectedItems.map((item) => (
                     <tr key={item.id}>
                       <td style={{ color: "#fff" }}>{item.product_name}</td>
+                      <td style={{ textTransform: "capitalize" }}>{item.color ?? "—"}</td>
                       <td>{item.size}</td>
                       <td>{item.quantity}</td>
                       <td>{formatMoney(Number(item.unit_price))}</td>
@@ -246,6 +254,34 @@ export function OrdersManager({
                 </div>
               </div>
             </div>
+
+            {selectedOrder.status === "aguardando_pagamento" && (
+              <button
+                className="adm-btn primary"
+                style={{ width: "100%", marginBottom: 16 }}
+                onClick={() => handleConfirmPayment(selectedOrder.id)}
+                disabled={isPending}
+              >
+                {isPending ? "Confirmando..." : "✓ Confirmar Pagamento (baixa estoque e envia p/ fila DTF)"}
+              </button>
+            )}
+            {selectedOrder.status === "aguardando_arte" && (
+              <div
+                style={{
+                  background: "#1a1206",
+                  border: "1px solid #3a2a10",
+                  borderRadius: 8,
+                  padding: "10px 14px",
+                  color: "#ffb020",
+                  fontSize: "0.85rem",
+                  marginBottom: 16,
+                }}
+              >
+                Pedido personalizado aguardando o preparo da arte DTF na aba{" "}
+                <strong>Uploads de Clientes</strong>. Após o upload do DTF, o pedido vai para
+                &quot;Aguardando Pagamento&quot;.
+              </div>
+            )}
 
             <div className="adm-field-row" style={{ marginBottom: 16 }}>
               <div className="adm-field">

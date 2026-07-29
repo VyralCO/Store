@@ -31,6 +31,31 @@ export const BUSINESS = {
 } as const;
 
 /**
+ * Status de pedido — modelo do fluxo de produção.
+ */
+export const ORDER_STATUS = [
+  "aguardando_arte",
+  "aguardando_pagamento",
+  "fila_dtf",
+  "enviado_grafica",
+  "estampado",
+  "enviado",
+  "cancelado",
+] as const;
+
+export type OrderStatus = (typeof ORDER_STATUS)[number];
+
+export const ORDER_STATUS_LABELS: Record<string, string> = {
+  aguardando_arte: "Aguardando Arte",
+  aguardando_pagamento: "Aguardando Pagamento",
+  fila_dtf: "Fila de Impressão DTF",
+  enviado_grafica: "Aguardando Impressão DTF",
+  estampado: "Camiseta Estampada",
+  enviado: "Enviado",
+  cancelado: "Cancelado",
+};
+
+/**
  * Calculate shipping cost
  */
 export function calculateShipping(subtotal: number): number {

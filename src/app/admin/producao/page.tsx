@@ -13,22 +13,25 @@ export default async function AdminProducaoPage() {
 async function ProducaoContent() {
   const supabase = createAdminClient();
 
-  const [queueRes, itemsRes, ordersRes] = await Promise.all([
-    supabase
-      .from("production_queue")
-      .select("*")
-      .order("created_at", { ascending: true }),
-    supabase.from("order_items").select("*"),
-    supabase
-      .from("orders")
-      .select("id, order_number, customer_name"),
-  ]);
+  const { data: orders } = await supabase
+    .from("orders")
+    .select("id, order_number, status, customer_name, is_custom, created_at")
+    .in("status", ["fila_dtf", "enviado_grafica", "estampado"])
+    .order("created_at", { ascending: true });
+
+  const orderIds = (orders ?? []).map((o) => o.id);
+
+  const { data: items } = orderIds.length > 0
+    ? await supabase
+        .from("order_items")
+        .select("id, order_id, product_name, size, color, quantity, dtf_file_path, is_custom")
+        .in("order_id", orderIds)
+    : { data: [] };
 
   return (
     <ProductionManager
-      queue={queueRes.data ?? []}
-      orderItems={itemsRes.data ?? []}
-      orders={ordersRes.data ?? []}
+      orders={orders ?? []}
+      orderItems={items ?? []}
     />
   );
 }

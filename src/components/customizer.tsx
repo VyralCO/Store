@@ -51,9 +51,11 @@ const LAYOUTS: { value: PrintLayout; label: string; desc: string; scale: number;
   { value: "full", label: "Full", desc: "Máximo possível", scale: 152, scaleH: 235, posY: 250 },
 ];
 
-const CUSTOM_PRICE = BUSINESS.CUSTOM_TSHIRT_PRICE;
-
-export function Customizer() {
+export function Customizer({ pricing }: { pricing: { center: number; full: number } }) {
+  const CUSTOM_PRICE_MAP: Record<string, number> = {
+    center: pricing.center,
+    full: pricing.full,
+  };
   const router = useRouter();
   const { addItem } = useCart();
   const clipId = useId().replace(/:/g, "");
@@ -178,7 +180,7 @@ export function Customizer() {
       key: `custom-${Date.now()}`,
       slug: "custom",
       name: "CAMISETA PERSONALIZADA",
-      price: CUSTOM_PRICE,
+      price: CUSTOM_PRICE_MAP[layout] ?? pricing.center,
       size,
       color: color === 0 ? "preta" : "branca",
       qty: 1,
@@ -422,7 +424,7 @@ export function Customizer() {
               PERSONALIZADA · 240g
             </div>
             <div style={{ fontFamily: "var(--mono)", fontSize: "22px" }}>
-              {formatMoney(CUSTOM_PRICE)}
+              {formatMoney(CUSTOM_PRICE_MAP[layout] ?? pricing.center)}
             </div>
           </div>
           <button className="btn" onClick={add} disabled={!canAdd}>

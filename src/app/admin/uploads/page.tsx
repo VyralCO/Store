@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/server";
 import { UploadsManager } from "./uploads-manager";
 import { AdminShell } from "@/components/admin-shell";
+import { getCustomPricing } from "../actions";
 
 export default async function AdminUploadsPage() {
   return (
@@ -18,5 +19,7 @@ async function UploadsContent() {
     .select("*")
     .order("created_at", { ascending: false });
 
-  return <UploadsManager uploads={uploads ?? []} />;
+  const pricing = await getCustomPricing();
+
+  return <UploadsManager uploads={uploads ?? []} pricing={pricing} />;
 }
